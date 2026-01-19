@@ -143,6 +143,28 @@ async function requireAdmin(req, res, next) {
 }
 
 // ============================================
+// Base Route
+// ============================================
+app.get('/', (req, res) => {
+  res.json({
+    code: 'SUCCESS',
+    msg: 'NFT Voting System API is running',
+    data: {
+      version: '1.0.0',
+      status: 'active',
+      endpoints: {
+        health: '/api/health',
+        auth: '/api/auth/*',
+        users: '/api/users/*',
+        kyc: '/api/kyc/*',
+        voting: '/api/voting/*',
+        blockchain: '/api/blockchain/*'
+      }
+    }
+  });
+});
+
+// ============================================
 // Health Check
 // ============================================
 app.get('/api/health', async (req, res) => {
