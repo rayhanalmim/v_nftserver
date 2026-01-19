@@ -69,7 +69,7 @@ async function connectDB() {
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 // Gemini AI Client for ID Card Extraction
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || 'AIzaSyClNpYcvUiiPG7HkvJi26AkOp96DXbsAjk');
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 
 // Email Transporter
 const emailTransporter = nodemailer.createTransport({
