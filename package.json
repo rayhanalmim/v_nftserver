@@ -5,8 +5,8 @@
   "description": "Backend API server for NFT-based Voting System",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js",
-    "dev": "nodemon index.js"
+    "start": "node api.js && node index.js",
+    "dev": "node api.js && nodemon index.js"
   },
   "dependencies": {
     "@azure/ai-form-recognizer": "^5.1.0",
