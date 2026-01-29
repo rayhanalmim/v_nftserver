@@ -81,7 +81,7 @@ const emailTransporter = nodemailer.createTransport({
 });
 
 // Blockchain Configuration
-const provider = new ethers.JsonRpcProvider(process.env.BSC_TESTNET_RPC);
+const provider = new ethers.JsonRpcProvider(process.env.BSC_MAINNET_RPC);
 const adminWallet = new ethers.Wallet(process.env.ADMIN_PRIVATE_KEY, provider);
 
 // Contract ABIs (minimal)
@@ -1499,6 +1499,73 @@ app.post('/api/voting/create', authenticateToken, requireAdmin, async (req, res)
     });
   } catch (error) {
     console.error('Create voting error:', error);
+    res.status(500).json({ code: 'ERROR', msg: 'Server error', data: null });
+  }
+});
+
+// Create Voting with Transaction (Admin) - Blockchain already done on client
+app.post('/api/voting/create-with-tx', authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    const { title, description, candidates, startTime, endTime, votingArea, eligibleAreas, chainType, txHash, blockchainElectionId } = req.body;
+    
+    // Validate required fields
+    if (!txHash || !blockchainElectionId) {
+      return res.status(400).json({ 
+        code: 'ERROR', 
+        msg: 'Transaction hash and blockchain election ID are required', 
+        data: null 
+      });
+    }
+    
+    // Validate timestamps
+    const startDate = new Date(startTime);
+    const endDate = new Date(endTime);
+    
+    if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+      return res.status(400).json({ 
+        code: 'ERROR', 
+        msg: 'Invalid date format for startTime or endTime', 
+        data: null 
+      });
+    }
+    
+    // Save to database (blockchain interaction already done on client)
+    const voting = {
+      blockchainElectionId,
+      txHash,
+      title,
+      description,
+      candidates: candidates.map((c, idx) => ({
+        id: (idx + 1).toString(),
+        blockchainId: (idx + 1).toString(),
+        name: c.name,
+        party: c.party,
+        description: c.description,
+        photo: c.photo,
+        voteCount: 0
+      })),
+      startTime: startDate,
+      endTime: endDate,
+      votingArea,
+      eligibleAreas,
+      chainType,
+      status: new Date() < startDate ? 'upcoming' : 'active',
+      createdBy: req.user.userId,
+      createdAt: new Date(),
+      totalVotes: 0
+    };
+    
+    const result = await db.collection('votings').insertOne(voting);
+    
+    console.log('Election saved to database:', { votingId: result.insertedId.toString(), blockchainElectionId, txHash });
+    
+    res.json({
+      code: 'SUCCESS',
+      msg: 'Voting saved successfully',
+      data: { votingId: result.insertedId.toString() }
+    });
+  } catch (error) {
+    console.error('Create voting with tx error:', error);
     res.status(500).json({ code: 'ERROR', msg: 'Server error', data: null });
   }
 });
